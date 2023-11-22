@@ -1,26 +1,17 @@
 import logging
-
 import optuna
 import pandas as pd
 import xgboost as xgb
-from lightgbm import LGBMRegressor
-from sklearn.ensemble import RandomForestRegressor
+from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 
-class Hyperparameter_Optimization:
-
+class HyperparameterOptimization:
     """
-    Class for doing hyperparameter optimization.
-
+    Class for doing hyperparameter optimization for classification models.
     """
 
-    def __init__(
-        self,
-        x_train: pd.DataFrame,
-        y_train: pd.Series,
-        x_test: pd.DataFrame,
-        y_test: pd.Series,
-    ) -> None:
+    def __init__(self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series) -> None:
         """Initialize the class with the training and test data."""
         self.x_train = x_train
         self.y_train = y_train
@@ -29,68 +20,57 @@ class Hyperparameter_Optimization:
 
     def optimize_randomforest(self, trial: optuna.Trial) -> float:
         """
-        Method for optimizing Random Forest.
-
-
+        Method for optimizing Random Forest for classification.
         """
         n_estimators = trial.suggest_int("n_estimators", 1, 200)
         max_depth = trial.suggest_int("max_depth", 1, 20)
         min_samples_split = trial.suggest_int("min_samples_split", 2, 20)
-        reg = RandomForestRegressor(
+        clf = RandomForestClassifier(
             n_estimators=n_estimators,
             max_depth=max_depth,
             min_samples_split=min_samples_split,
         )
-        reg.fit(self.x_train, self.y_train)
-        val_accuracy = reg.score(self.x_test, self.y_test)
+        clf.fit(self.x_train, self.y_train)
+        val_accuracy = clf.score(self.x_test, self.y_test)
         return val_accuracy
 
     def optimize_lightgbm(self, trial: optuna.Trial) -> float:
         """
-        Method for Optimizing LightGBM.
-
+        Method for Optimizing LightGBM for classification.
         """
         n_estimators = trial.suggest_int("n_estimators", 1, 200)
         max_depth = trial.suggest_int("max_depth", 1, 20)
         learning_rate = trial.suggest_uniform("learning_rate", 0.01, 0.99)
-        reg = LGBMRegressor(
+        clf = LGBMClassifier(
             n_estimators=n_estimators,
             learning_rate=learning_rate,
             max_depth=max_depth,
         )
-        reg.fit(self.x_train, self.y_train)
-        val_accuracy = reg.score(self.x_test, self.y_test)
+        clf.fit(self.x_train, self.y_train)
+        val_accuracy = clf.score(self.x_test, self.y_test)
         return val_accuracy
 
-    def optimize_xgboost_regressor(self, trial: optuna.Trial) -> float:
+    def optimize_xgboost(self, trial: optuna.Trial) -> float:
         """
-        Method for Optimizing Xgboost
+        Method for Optimizing XGBoost for classification.
         """
         param = {
             "max_depth": trial.suggest_int("max_depth", 1, 30),
-            "learning_rate": trial.suggest_loguniform(
-                "learning_rate", 1e-7, 10.0
-            ),
+            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-7, 10.0),
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
         }
-        reg = xgb.XGBRegressor(**param)
-        reg.fit(self.x_train, self.y_train)
-        val_accuracy = reg.score(self.x_test, self.y_test)
+        clf = xgb.XGBClassifier(**param)
+        clf.fit(self.x_train, self.y_train)
+        val_accuracy = clf.score(self.x_test, self.y_test)
         return val_accuracy
 
 
 class ModelTraining:
     """
-    Class for training models.
+    Class for training classification models.
     """
 
-    def __init__(
-        self,
-        x_train: pd.DataFrame,
-        y_train: pd.Series,
-        x_test: pd.DataFrame,
-        y_test: pd.Series,
-    ) -> None:
+    def __init__(self, x_train: pd.DataFrame, y_train: pd.Series, x_test: pd.DataFrame, y_test: pd.Series) -> None:
         """Initialize the class with the training and test data."""
         self.x_train = x_train
         self.y_train = y_train
@@ -99,17 +79,12 @@ class ModelTraining:
 
     def random_forest_trainer(self, fine_tuning: bool = True):
         """
-        It trains the random forest model.
-
-        Args:
-            fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used. Defaults to True (optional).
-
+        It trains the random forest model for classification.
         """
         logging.info("Started training Random Forest model.")
         try:
             if fine_tuning:
-                hyper_opt = Hyperparameter_Optimization(
+                hyper_opt = HyperparameterOptimization(
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
@@ -118,16 +93,16 @@ class ModelTraining:
                 n_estimators = trial.params["n_estimators"]
                 max_depth = trial.params["max_depth"]
                 min_samples_split = trial.params["min_samples_split"]
-                print("Best parameters : ", trial.params)
-                reg = RandomForestRegressor(
+                print("Best parameters: ", trial.params)
+                clf = RandomForestClassifier(
                     n_estimators=n_estimators,
                     max_depth=max_depth,
                     min_samples_split=min_samples_split,
                 )
-                reg.fit(self.x_train, self.y_train)
-                return reg
+                clf.fit(self.x_train, self.y_train)
+                return clf
             else:
-                model = RandomForestRegressor(
+                model = RandomForestClassifier(
                     n_estimators=152, max_depth=20, min_samples_split=17
                 )
                 model.fit(self.x_train, self.y_train)
@@ -139,17 +114,12 @@ class ModelTraining:
 
     def lightgbm_trainer(self, fine_tuning: bool = True):
         """
-        It trains the LightGBM model.
-
-        Args:
-            fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used, Defaults to True (optional).
+        It trains the LightGBM model for classification.
         """
-
         logging.info("Started training LightGBM model.")
         try:
             if fine_tuning:
-                hyper_opt = Hyperparameter_Optimization(
+                hyper_opt = HyperparameterOptimization(
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
@@ -158,15 +128,15 @@ class ModelTraining:
                 n_estimators = trial.params["n_estimators"]
                 max_depth = trial.params["max_depth"]
                 learning_rate = trial.params["learning_rate"]
-                reg = LGBMRegressor(
+                clf = LGBMClassifier(
                     n_estimators=n_estimators,
                     learning_rate=learning_rate,
                     max_depth=max_depth,
                 )
-                reg.fit(self.x_train, self.y_train)
-                return reg
+                clf.fit(self.x_train, self.y_train)
+                return clf
             else:
-                model = LGBMRegressor(
+                model = LGBMClassifier(
                     n_estimators=200, learning_rate=0.01, max_depth=20
                 )
                 model.fit(self.x_train, self.y_train)
@@ -178,35 +148,29 @@ class ModelTraining:
 
     def xgboost_trainer(self, fine_tuning: bool = True):
         """
-        It trains the xgboost model.
-
-        Args:
-            fine_tuning: If True, hyperparameter optimization is performed. If False, the default
-            parameters are used, Defaults to True (optional).
+        It trains the XGBoost model for classification.
         """
-
         logging.info("Started training XGBoost model.")
         try:
             if fine_tuning:
-                hy_opt = Hyperparameter_Optimization(
+                hy_opt = HyperparameterOptimization(
                     self.x_train, self.y_train, self.x_test, self.y_test
                 )
                 study = optuna.create_study(direction="maximize")
-                study.optimize(hy_opt.optimize_xgboost_regressor, n_trials=100)
+                study.optimize(hy_opt.optimize_xgboost, n_trials=100)
                 trial = study.best_trial
                 n_estimators = trial.params["n_estimators"]
                 learning_rate = trial.params["learning_rate"]
                 max_depth = trial.params["max_depth"]
-                reg = xgb.XGBRegressor(
+                clf = xgb.XGBClassifier(
                     n_estimators=n_estimators,
                     learning_rate=learning_rate,
                     max_depth=max_depth,
                 )
-                reg.fit(self.x_train, self.y_train)
-                return reg
-
+                clf.fit(self.x_train, self.y_train)
+                return clf
             else:
-                model = xgb.XGBRegressor(
+                model = xgb.XGBClassifier(
                     n_estimators=200, learning_rate=0.01, max_depth=20
                 )
                 model.fit(self.x_train, self.y_train)
