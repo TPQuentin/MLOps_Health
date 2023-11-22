@@ -9,7 +9,7 @@ from typing import Union
 FILE_NAME = os.path.basename(__file__)
 
 @step()
-def step_ingest_data(path: Union[str, Path]) -> pd.DataFrame:
+def process_ingest_data(path: Union[str, Path]) -> pd.DataFrame:
     """
     This function represents the step to ingest the data using an instance from the IngestData class.
     
