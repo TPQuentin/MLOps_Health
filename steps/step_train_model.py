@@ -12,7 +12,7 @@ from .config import ModelNameConfig
 experiment_tracker = Client().active_stack.experiment_tracker
 
 
-@step(experiment_tracker = experiment_tracker)
+@step(experiment_tracker = experiment_tracker.name)
 def process_train_model(X_train: pd.DataFrame, X_test: pd.DataFrame,
                         y_train: pd.Series, y_test: pd.Series, config: ModelNameConfig)-> Output(model = ClassifierMixin):
     """

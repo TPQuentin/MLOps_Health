@@ -128,6 +128,7 @@ ENV/
 env.bak/
 venv.bak/
 healthenv/
+.zen/
 
 # Spyder project settings
 .spyderproject
