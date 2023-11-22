@@ -1,25 +1,33 @@
 import logging
-
 import pandas as pd
 from .components.component_ingest_class import IngestData
 from zenml.steps import step
-import os 
+import os
+from pathlib import Path
+from typing import Union
 
 FILE_NAME = os.path.basename(__file__)
 
 @step()
-def step_ingest_data(path) -> pd.DataFrame:
+def step_ingest_data(path: Union[str, Path]) -> pd.DataFrame:
     """
-    This function represent the step to ingest the data. It use instance from the IngestData class.
+    This function represents the step to ingest the data using an instance from the IngestData class.
+    
     Args:
-        path: path to your data.
+        path (str): Path to your data.
+    
     Returns:
-        df: pd.DataFrame containing the data
+        pd.DataFrame: DataFrame containing the data.
     """
+    logging.info(f"Starting {FILE_NAME}")
+    
+    # Create the IngestData instance
+    ingest_data_instance = IngestData(path)
+    
+    # Call the get_data method to perform data ingestion
     try:
-        logging.info(f"Starting the {FILE_NAME}")
-        ingest_data_instance = IngestData(path)
+        df = ingest_data_instance.get_data(path)
+        return df
     except Exception as e:
-        logging.error(f"An error has occure before starting {FILE_NAME}: {e}")
+        logging.error(f"An error occurred while ingesting data: {e}")
         raise e
-

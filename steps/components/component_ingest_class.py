@@ -1,31 +1,44 @@
 import logging
-
 import pandas as pd
 from pathlib import Path
 from typing import Union
-import os 
+import os
 
 FILE_NAME = os.path.basename(__file__)
 
 class IngestData:
     """
-    Data Ingestion class which ingest data from the source and returns a DataFrame
+    Data Ingestion class which ingests data from the source and returns a DataFrame
     """
 
-    def __init__(self, path: str = None) -> None:
-        """Initialize the data ingestion class"""
+    def __init__(self, path: str) -> None:
+        """Initialize the data ingestion class with a required path."""
         self.path = path
 
-    def get_data(self, path: Union[str, Path] ) -> pd.DataFrame:
+    #@staticmethod
+    def get_data(path: Union[str, Path]) -> pd.DataFrame:
         """
-        This funnction enable to fetch the data from the indicated path.
+        Fetch data from the indicated path.
+        
         Args:
-            path: The path of the source
-        Return:
-            df: The DataFrame containing the ingested data
+            path (Union[str, Path]): The path of the source file.
+        
+        Returns:
+            pd.DataFrame: The DataFrame containing the ingested data.
         """
         logging.info(f"Start IngestData.get_data() from script {FILE_NAME}")
         if isinstance(path, str):
             path = Path(path)
-        df = pd.read_csv(path)
-        return df
+
+        if not path.exists() or not path.is_file():
+            raise FileNotFoundError(f"File not found at {path}")
+
+        # Check file extension and handle different formats if needed
+        if path.suffix.lower() != '.csv':
+            raise ValueError("Unsupported file format. Only CSV files are supported.")
+
+        try:
+            df = pd.read_csv(path)
+            return df
+        except pd.errors.EmptyDataError:
+            raise ValueError(f"File at {path} is empty.")
