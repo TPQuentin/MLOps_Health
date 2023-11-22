@@ -20,5 +20,3 @@ def process_clean_data(data: pd.DataFrame)->pd.DataFrame:
     except Exception as e:
         logging.error(f"Error for {FILE_NAME}: {e}")
         raise e
-    return cleaned_data
-    

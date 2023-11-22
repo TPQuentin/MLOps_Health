@@ -26,8 +26,8 @@ def process_ingest_data(path: Union[str, Path]) -> pd.DataFrame:
     
     # Call the get_data method to perform data ingestion
     try:
-        df = ingest_data_instance.get_data(path)
-        return df
+        data = ingest_data_instance.get_data(path)
+        return data
     except Exception as e:
         logging.error(f"An error occurred while ingesting data: {e}")
         raise e
