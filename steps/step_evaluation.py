@@ -5,16 +5,20 @@ import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from zenml.client import Client
-from zenml.steps import Output, step
+from zenml.steps import step
+from typing import Tuple, Annotated
 
-from .components.component_evaluation import Evaluation  # Assuming this class is updated for classification
+# Assuming this class is updated for classification
+from components.component_evaluation import Evaluation
 
 experiment_tracker = Client().active_stack.experiment_tracker
 
+
 @step(experiment_tracker=experiment_tracker.name)
-def evaluation(
+def process_evaluate(
     model: ClassifierMixin, X_test: pd.DataFrame, y_test: pd.Series
-) -> Output(accuracy=float, precision=float, recall=float, f1_score=float):
+) -> Tuple[Annotated[float, "Accuracy"], Annotated[float, "Precision"],
+           Annotated[float, "Recall"], Annotated[float, "F1_Score"]]:
     """
     Evaluates the performance of a classification model.
 
@@ -32,7 +36,7 @@ def evaluation(
     try:
         prediction = model.predict(X_test)
         evaluation = Evaluation()
-        
+
         accuracy = evaluation.accuracy(y_test, prediction)
         mlflow.log_metric("accuracy", accuracy)
 

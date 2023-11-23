@@ -175,6 +175,7 @@ class ModelTraining:
                 )
                 model.fit(self.x_train, self.y_train)
                 return model
+
         except Exception as e:
             logging.error("Error in training XGBoost model.")
             logging.error(e)
