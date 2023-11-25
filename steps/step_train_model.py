@@ -5,7 +5,7 @@ from components.component_train_model import ModelTraining
 from sklearn.base import ClassifierMixin
 
 from zenml.client import Client
-from zenml.steps import step
+from zenml import step
 from .config import ModelNameConfig
 
 # set experiment_tracker variable with the expriement tracker active in the current active stack
@@ -13,8 +13,7 @@ experiment_tracker = Client().active_stack.experiment_tracker
 
 
 @step(experiment_tracker=experiment_tracker.name)
-def process_train_model(X_train: pd.DataFrame, X_test: pd.DataFrame,
-                        y_train: pd.Series, y_test: pd.Series, config: ModelNameConfig) -> ClassifierMixin:
+def process_train_model(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> ClassifierMixin:
     """
     Args:
         X_train: The train data
@@ -26,6 +25,7 @@ def process_train_model(X_train: pd.DataFrame, X_test: pd.DataFrame,
         model: artefact representing the trained model
     """
     try:
+        config = ModelNameConfig()
         model_training = ModelTraining(X_train, y_train, X_test, y_test)
 
         if config.model_name == "lightgbm":

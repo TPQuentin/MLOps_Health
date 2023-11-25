@@ -4,6 +4,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.base import ClassifierMixin
 import pandas as pd
 
+
 class Evaluation:
     """
     Evaluation class which evaluates the model performance for multiclass classification
@@ -45,7 +46,8 @@ class Evaluation:
             precision: float
         """
         try:
-            logging.info("Entered the precision method of the Evaluation class")
+            logging.info(
+                "Entered the precision method of the Evaluation class")
             prec = precision_score(self.y_true, self.y_pred, average=average)
             logging.info(f"The precision value is: {prec}")
             return prec
@@ -101,7 +103,8 @@ class Evaluation:
             confusion_matrix: np.ndarray
         """
         try:
-            logging.info("Entered the confusion_matrix method of the Evaluation class")
+            logging.info(
+                "Entered the confusion_matrix method of the Evaluation class")
             cm = confusion_matrix(self.y_true, self.y_pred)
             logging.info(f"Confusion Matrix:\n{cm}")
             return cm

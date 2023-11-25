@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from zenml.client import Client
-from zenml.steps import step
+from zenml import step
 from typing import Tuple, Annotated
 
 # Assuming this class is updated for classification
@@ -15,10 +15,8 @@ experiment_tracker = Client().active_stack.experiment_tracker
 
 
 @step(experiment_tracker=experiment_tracker.name)
-def process_evaluate(
-    model: ClassifierMixin, X_test: pd.DataFrame, y_test: pd.Series
-) -> Tuple[Annotated[float, "Accuracy"], Annotated[float, "Precision"],
-           Annotated[float, "Recall"], Annotated[float, "F1_Score"]]:
+def process_evaluate(model: ClassifierMixin, X_test: pd.DataFrame, y_test: pd.Series) -> Tuple[Annotated[float, "Accuracy"], Annotated[float, "Precision"],
+                                                                                               Annotated[float, "Recall"], Annotated[float, "F1_Score"]]:
     """
     Evaluates the performance of a classification model.
 
@@ -35,18 +33,18 @@ def process_evaluate(
     """
     try:
         prediction = model.predict(X_test)
-        evaluation = Evaluation()
+        evaluation = Evaluation(y_test, prediction, model)
 
-        accuracy = evaluation.accuracy(y_test, prediction)
+        accuracy = evaluation.accuracy()
         mlflow.log_metric("accuracy", accuracy)
 
-        precision = evaluation.precision(y_test, prediction, average='macro')
+        precision = evaluation.precision(average='macro')
         mlflow.log_metric("precision", precision)
 
-        recall = evaluation.recall(y_test, prediction, average='macro')
+        recall = evaluation.recall(average='macro')
         mlflow.log_metric("recall", recall)
 
-        f1 = evaluation.f1(y_test, prediction, average='macro')
+        f1 = evaluation.f1(average='macro')
         mlflow.log_metric("f1_score", f1)
 
         return accuracy, precision, recall, f1

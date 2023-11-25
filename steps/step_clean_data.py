@@ -1,24 +1,22 @@
 import logging
 import pandas as pd
 
-from zenml.steps import step
+from zenml import step
 import os
 from components.component_data_cleaning import DataCleaning
 from typing import Tuple, Annotated
+import pandas as pd
 
 FILE_NAME = os.path.basename(__file__)
 
 
-@step
-def process_clean_data(data: pd.DataFrame) -> Tuple[Annotated[pd.DataFrame, "Training Features"],
-                                                    Annotated[pd.DataFrame,
-                                                              "Testing Features"],
-                                                    Annotated[pd.Series,
-                                                    "Training Labels"],
-                                                    Annotated[pd.Series, "Testing Labels"]]:
-
+@step(enable_cache=False)
+def process_clean_data(data: pd.DataFrame) -> Tuple[Annotated[pd.DataFrame, "X_train"], Annotated[pd.DataFrame,
+                                                                                                  "X_test"], Annotated[pd.Series,
+                                                                                                                       "y_train"], Annotated[pd.Series, "y_test"]]:
     try:
         logging.info(f"Start cleaning {FILE_NAME}")
+
         cleaner = DataCleaning(data)
         cleaned_data = cleaner.clean_data()
         logging.info(f"Enf of cleaning {FILE_NAME}")

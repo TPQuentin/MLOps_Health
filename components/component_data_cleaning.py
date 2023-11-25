@@ -1,67 +1,65 @@
 import logging
 import pandas as pd
 import os
-from typing import Annotated, Tuple
+from typing import Tuple
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 FILE_NAME = os.path.basename(__file__)
 
 
 class DataCleaning:
     """
-    Define class to clean the data.
+    Class to clean the data.
     """
 
     def __init__(self, data: pd.DataFrame) -> None:
-        """Initialize the DataCleaning class"""
+        """Initialize the DataCleaning class with a DataFrame."""
         self.data = data
 
     def clean_data(self) -> pd.DataFrame:
         """
-        This method aims to clean the data of the instance class DataCleaning. Like removing unused columns, filling-up missing value, etc
-        Args:
-            data: pd.DataFrame containing the data to clean
-        Returns;
-            clean_def: pd.Dataframe containing the cleaned data.
+        Clean the data by removing unused columns and filling up missing values.
+
+        Returns:
+            pd.DataFrame: The cleaned data.
         """
         col_to_keep = ['Age', 'Billing Amount', 'Test Results']
         try:
             logging.info(f"Starting clean_data() {FILE_NAME}")
             df = self.data[col_to_keep]
-            clean_df = df.fillna('Mode')
+
+            # Example: Fill missing values with the mode of each column
+            for col in df.columns:
+                df.loc[:, col] = df[col].fillna(df[col].mode()[0])
+
             logging.info(f"Ending clean_data() {FILE_NAME}")
-            return clean_df
+            return df
 
         except Exception as e:
-            logging(f"Error while cleaning data with {FILE_NAME}: {e}")
+            logging.error(f"Error while cleaning data with {FILE_NAME}: {e}")
             raise e
 
-    # @staticmethod
-    def divide_data(df: pd.DataFrame) -> Tuple[Annotated[pd.DataFrame, "Training Features"],
-                                               Annotated[pd.DataFrame,
-                                                         "Testing Features"],
-                                               Annotated[pd.Series,
-                                                         "Training Labels"],
-                                               Annotated[pd.Series, "Testing Labels"]]:
+    def divide_data(self, clean_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
         """
-        Divide the data into train and test data.
+        Divide the data into train and test sets.
 
         Args:
-            df (pd.DataFrame): The input DataFrame containing features and labels.
+            clean_df (pd.DataFrame): The cleaned DataFrame containing features and labels.
 
         Returns:
-            Tuple of (X_train, X_test, y_train, y_test):
-                - X_train (pd.DataFrame): Training features.
-                - X_test (pd.DataFrame): Testing features.
-                - y_train (pd.Series): Training labels.
-                - y_test (pd.Series): Testing labels.
+            Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]: Training and testing features and labels.
         """
         try:
             logging.info(f"Starting divide_data() {FILE_NAME}")
-            # Assuming 'Test Results' is the label column
-            X = df.drop(['Test Results'], axis=1)
-            # Replace 'Test Results' with your actual label column name
-            y = df['Test Results']
+            X = clean_df.drop(['Test Results'], axis=1)
+            y = clean_df['Test Results']
+
+            # Encoding the 'Test Results' column if it is categorical
+            if y.dtype == 'object':
+                encoder = LabelEncoder()
+                y = encoder.fit_transform(y)
+                y = pd.Series(y)
 
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.2, random_state=42)

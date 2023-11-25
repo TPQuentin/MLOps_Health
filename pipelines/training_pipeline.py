@@ -1,14 +1,19 @@
 import logging
-from zenml.pipelines import pipeline
+from zenml import pipeline
 import os
-from steps.config import ModelNameConfig
+
+from steps.step_ingest_data import process_ingest_data
+from steps.step_clean_data import process_clean_data
+from steps.step_train_model import process_train_model
+from steps.step_evaluation import process_evaluate
 
 FILE_NAME = os.path.basename(__file__)
 
 
-@pipeline
-def train_pipeline(process_ingest_data, process_clean_data, process_train_model, process_evaluate):
+@pipeline(enable_cache=False)
+def train_pipeline_test(path: str):
     """
+    #process_ingest_data, process_clean_data, process_train_model, process_evaluate
     Args:
         step_ingest_data: DataClass
         step_clean_data: DataClass
@@ -18,15 +23,12 @@ def train_pipeline(process_ingest_data, process_clean_data, process_train_model,
         mse: float
         rmse: float
     """
-
-    print("HIHIHIHHIHIHIHIHIHIHIHIHIHIHIHIh")
     logging.info(f"Starting {FILE_NAME}")
-    df = process_ingest_data()
+    df = process_ingest_data(path)
 
     x_train, x_test, y_train, y_test = process_clean_data(df)
 
-    config = ModelNameConfig
-    model = process_train_model(x_train, x_test, y_train, y_test, config)
+    model = process_train_model(x_train, x_test, y_train, y_test)
 
-    accuracy, precision, recall, f1 = process_evaluate(model, x_test, y_test)
+    process_evaluate(model, x_test, y_test)
     logging.info(f"Ending {FILE_NAME}")
