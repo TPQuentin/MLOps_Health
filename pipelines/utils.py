@@ -14,6 +14,7 @@ def get_data_for_test():
         df.drop(["Test Results"], axis=1, inplace=True)
         result = df.to_json(orient="split")
         return result
+
     except Exception as e:
         logging.error(e)
         raise e

@@ -129,6 +129,7 @@ env.bak/
 venv.bak/
 healthenv/
 .zen/
+mlruns/
 
 # Spyder project settings
 .spyderproject

@@ -1,6 +1,11 @@
 from pipelines.training_pipeline import train_pipeline_test
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 
+from steps.step_ingest_data import process_ingest_data
+from steps.step_clean_data import process_clean_data
+from steps.step_train_model import process_train_model
+from steps.step_evaluation import process_evaluate
+
 
 if __name__ == "__main__":
 
