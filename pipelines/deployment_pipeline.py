@@ -9,7 +9,7 @@ from materializer.custom_materializer import cs_materializer
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import MLFlowModelDeployer
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
 from zenml import pipeline
-from zenml.steps import step, Output, BaseParameters
+from zenml import step
 
 from .utils import get_data_for_test
 
@@ -17,61 +17,36 @@ from steps.step_ingest_data import process_ingest_data
 from steps.step_clean_data import process_clean_data
 from steps.step_train_model import process_train_model
 from steps.step_evaluation import process_evaluate
-
+from zenml.integrations.mlflow.steps import mlflow_model_deployer_step
 
 requirement_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
 
 
 @step(enable_cache=True, output_materializers=cs_materializer)
-def process_dynamic_importer() -> Output(data=str):
+def process_dynamic_importer() -> str:
     # The output of this step will use a custom materializer cs_materializer to output a model pickle file. The materializer enable to serializer and deserializer custom python type using a pickle file. Json could have been use also for example.
     data = get_data_for_test()
     # The steps will automatically use the cs_materialize class to save and load the model in the context of ZenML
     return data
 
 
-# In the context of Zenml the BaseParameter class is used to pass a parameter from one step to another.
-class DeploymentTriggerConfig(BaseParameters):
-    """Parameters that are used to trigger the deployment"""
-
-    min_accuracy: float
-
-
 @step
-def process_deployment_trigger(accuracy: float, config: DeploymentTriggerConfig) -> bool:
+def process_deployment_trigger(accuracy: float, min_accuracy: float = 0.2) -> bool:
     """
+    Determine whether to trigger deployment based on model accuracy.
+
     Args:
-        accuracy: accuracy of the trained model
-        config: Config of the DeploymentTrigger
+        accuracy: Accuracy of the trained model.
+        config: Configuration of the DeploymentTrigger.
+
     Returns:
-        True if the accuracy > config.min_accuracy else false
+        True if the accuracy is greater than config.min_accuracy, else False.
     """
-    return accuracy > config.min_accuracy
-
-
-class MLFlowDeploymentLoaderStepConfig(BaseParameters):
-    """MLflow deployment getter parameters
-
-    Attributes:
-        pipeline_name: name of the pipeline that deployed the MLflow prediction
-            server
-
-        step_name: the name of the step that deployed the MLflow prediction
-            server
-
-        running: when this flag is set, the step only returns a running service
-
-        model_name: the name of the model that is deployed
-    """
-
-    pipeline_name: str
-    step_name: str
-    running: bool
-    model_name: str
+    return accuracy > min_accuracy
 
 
 @step
-def process_prediction_service_loader(config: MLFlowDeploymentLoaderStepConfig) -> MLFlowModelDeployer:
+def process_prediction_service_loader(pipeline_name: str, step_name: str, running: bool) -> MLFlowModelDeployer:
     """
     Get the prediction service started by the deployment pipeline
     """
@@ -81,14 +56,14 @@ def process_prediction_service_loader(config: MLFlowDeploymentLoaderStepConfig) 
 
     # fetch existing services with the same pipeline name, step name and model name
     existing_services = model_deployer.find_model_server(
-        pipeline_name=config.pipeline_name,
-        step_name=config.step_name,
-        running=config.running
+        pipeline_name=pipeline_name,
+        step_name=step_name,
+        running=running
     )
     if not existing_services:
         raise RuntimeError(
             f"No MLflow prediction service deployed by the "
-            f"{config.step_name} step in the {config.pipeline_name} "
+            f"{step_name} step in the {pipeline_name} "
             f"pipeline is currently "
             f"running."
         )
@@ -121,8 +96,10 @@ def process_prediction(service: MLFlowDeploymentService, data: str) -> np.ndarra
 
 
 @pipeline(enable_cache=False)
-def continuous_deployment_pipeline(process_ingest_data, process_clean_data, process_train_model, process_evaluate, process_deployment_trigger, model_deployer):
-    df = process_ingest_data()
+def continuous_deployment_pipeline(min_accuracy: float):
+
+    df = process_ingest_data(
+        "C:\\Users\\quentin.plourdeau\\OneDrive - Tune Protect Group\\Desktop\\Youtube_Tutorial\\MLOps_Health_Insurance\\data\\health.csv")
 
     X_train, X_test, y_train, y_test = process_clean_data(df)
 
@@ -130,9 +107,11 @@ def continuous_deployment_pipeline(process_ingest_data, process_clean_data, proc
 
     accuracy, _, _, _ = process_evaluate(model, X_test, y_test)
 
-    deploy_decision = process_deployment_trigger(accuracy=accuracy)
+    deploy_decision = process_deployment_trigger(
+        accuracy=accuracy, min_accuracy=min_accuracy)
 
-    model_deployer(deploy_decision, model)
+    model_deployer = mlflow_model_deployer_step(
+        model=model, deploy_decision=deploy_decision, model_name="model", workers=3)
 
 
 @pipeline
