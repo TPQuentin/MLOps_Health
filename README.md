@@ -1,4 +1,4 @@
-# MLOps_Health_Insurance
+# MLOps
 
 Use health data to predict the result of a test (Normal, Abnormal, Incnclusive).
 
