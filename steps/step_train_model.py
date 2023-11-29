@@ -7,6 +7,7 @@ from sklearn.base import ClassifierMixin
 from zenml.client import Client
 from zenml import step
 from .config import ModelNameConfig
+from zenml.integrations.mlflow.steps.mlflow_registry import mlflow_register_model_step
 
 # set experiment_tracker variable with the expriement tracker active in the current active stack
 experiment_tracker = Client().active_stack.experiment_tracker
@@ -30,18 +31,21 @@ def process_train_model(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
 
         if config.model_name == "lightgbm":
             mlflow.lightgbm.autolog()
+
             lgm_model = model_training.lightgbm_trainer(
                 fine_tuning=config.fine_tuning
             )
             return lgm_model
         elif config.model_name == "randomforest":
             mlflow.sklearn.autolog()
+
             rf_model = model_training.random_forest_trainer(
                 fine_tuning=config.fine_tuning
             )
             return rf_model
         elif config.model_name == "xgboost":
             mlflow.xgboost.autolog()
+
             xgb_model = model_training.xgboost_trainer(
                 fine_tuning=config.fine_tuning
             )

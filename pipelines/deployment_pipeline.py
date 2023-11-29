@@ -57,7 +57,7 @@ def process_prediction_service_loader(pipeline_name: str, step_name: str, runnin
     # fetch existing services with the same pipeline name, step name and model name
     existing_services = model_deployer.find_model_server(
         pipeline_name=pipeline_name,
-        step_name=step_name,
+        pipeline_step_name=step_name,
         running=running
     )
     if not existing_services:

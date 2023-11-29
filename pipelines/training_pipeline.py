@@ -8,6 +8,8 @@ from steps.step_ingest_data import process_ingest_data
 from steps.step_clean_data import process_clean_data
 from steps.step_train_model import process_train_model
 from steps.step_evaluation import process_evaluate
+# from steps.step_register_model import process_register_model
+from zenml.integrations.mlflow.steps.mlflow_registry import mlflow_register_model_step
 
 docker_settings = DockerSettings(required_integrations=[MLFLOW])
 
@@ -35,4 +37,9 @@ def train_pipeline_test(path: str):
     model = process_train_model(x_train, x_test, y_train, y_test)
 
     process_evaluate(model, x_test, y_test)
+
+    mlflow_register_model_step(
+        model=model,
+        name="model"
+    )
     logging.info(f"Ending {FILE_NAME}")
