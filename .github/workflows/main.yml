@@ -24,7 +24,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        
+    - name: Install zenml dependencies
+      run: 
+        zenml init
         pip install "zenml[server]"
-        zenml install integration --flavor=mlflow
+        zenml integration install mlflow -y
+        zenml stack register my_stack_name -d mlflow_model_deployer -e mlflow_experiment_tracker -a default -o default -r mlflow_model_register
+        zenml stack set my_stack_name
+        
     - name: Run Training Script
       run: python run_training_pipeline.py
