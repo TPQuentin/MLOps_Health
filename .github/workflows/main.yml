@@ -24,14 +24,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
-    - name: Install zenml dependencies
-      run: 
+
+    - name: Install ZenML dependencies and setup stack
+      run: |
+        pip install zenml
         zenml init
         pip install "zenml[server]"
-        zenml integration install mlflow -y
+        zenml integration install mlflow
         zenml stack register my_stack_name -d mlflow_model_deployer -e mlflow_experiment_tracker -a default -o default -r mlflow_model_register
         zenml stack set my_stack_name
-        
+
     - name: Run Training Script
       run: python run_training_pipeline.py
