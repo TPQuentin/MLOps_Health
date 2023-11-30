@@ -9,7 +9,7 @@ Zenml enable to integrate tools by defining custom stack component to run pipeli
 ## Python Requirements
 
 ```bash
-git clone https://github.com/TPQuentin/MLOps_Health_Insurance.git
+git clone https://github.com/TPQuentin/MLOps_Health.git
 cd MLOps_Health_Insurance
 python -m venv healthenv
 
